@@ -28,6 +28,7 @@ Assignment 1/
 │   ├── run_tests.py          # Test runner (unit tests by default)
 │   ├── test_shared_buffer.py     # REQUIRED unit tests for SharedBuffer
 │   └── integration_producer_consumer.py  # OPTIONAL integration tests (1:1, N:1, 1:M, N:M, contention)
+├── main.py
 └── README.md
 ```
 
@@ -37,6 +38,112 @@ Assignment 1/
 * No external dependencies
 
 ## Quick Start
+
+## How to Run
+
+From the project root:
+
+```bash
+python main.py
+```
+
+This script will:
+
+* Initialize a `ProducerConsumerSystem` with a bounded buffer of size 5
+* Register **3 producers**, each generating 10 items (`P1-*`, `P2-*`, `P3-*`) with a small production delay
+* Register **2 consumers** with a small consumption delay
+* Start all producer and consumer threads
+* Perform a **graceful shutdown** after producers finish (buffer is drained, then poison pills sent)
+* Print:
+
+  * Total items consumed
+  * Aggregated per-thread statistics
+
+## Sample Output
+```text
+
+Starting producer-consumer system
+Consumer 1 started
+Consumer 2 started
+Producer 1 started
+Producer 2 started
+Producer 3 started
+Initiating graceful shutdown
+Producer 1 produced: 'P1-0' (total: 1)
+Producer 2 produced: 'P2-0' (total: 1)
+Producer 3 produced: 'P3-0' (total: 1)
+Producer 1 produced: 'P1-1' (total: 2)
+Producer 2 produced: 'P2-1' (total: 2)
+Producer 3 produced: 'P3-1' (total: 2)
+Consumer 2 consumed: 'P2-0' (total: 1)
+Producer 1 produced: 'P1-2' (total: 3)
+Producer 3 produced: 'P3-2' (total: 3)
+Consumer 1 consumed: 'P1-0' (total: 1)
+Producer 2 produced: 'P2-2' (total: 3)
+Consumer 2 consumed: 'P3-0' (total: 2)
+Consumer 1 consumed: 'P1-1' (total: 2)
+Producer 1 produced: 'P1-3' (total: 4)
+Producer 3 produced: 'P3-3' (total: 4)
+Consumer 2 consumed: 'P2-1' (total: 3)
+Producer 2 produced: 'P2-3' (total: 4)
+Consumer 1 consumed: 'P3-1' (total: 3)
+Producer 1 produced: 'P1-4' (total: 5)
+Consumer 2 consumed: 'P1-2' (total: 4)
+Consumer 1 consumed: 'P3-2' (total: 4)
+Producer 3 produced: 'P3-4' (total: 5)
+Producer 2 produced: 'P2-4' (total: 5)
+Consumer 1 consumed: 'P1-3' (total: 5)
+Producer 1 produced: 'P1-5' (total: 6)
+Consumer 2 consumed: 'P2-2' (total: 5)
+Producer 2 produced: 'P2-5' (total: 6)
+Consumer 1 consumed: 'P3-3' (total: 6)
+Consumer 2 consumed: 'P2-3' (total: 6)
+Producer 1 produced: 'P1-6' (total: 7)
+Producer 3 produced: 'P3-5' (total: 6)
+Consumer 2 consumed: 'P3-4' (total: 7)
+Consumer 1 consumed: 'P1-4' (total: 7)
+Producer 2 produced: 'P2-6' (total: 7)
+Producer 1 produced: 'P1-7' (total: 8)
+Consumer 2 consumed: 'P2-4' (total: 8)
+Producer 3 produced: 'P3-6' (total: 7)
+Consumer 1 consumed: 'P1-5' (total: 8)
+Producer 1 produced: 'P1-8' (total: 9)
+Consumer 2 consumed: 'P2-5' (total: 9)
+Producer 2 produced: 'P2-7' (total: 8)
+Consumer 1 consumed: 'P1-6' (total: 9)
+Producer 3 produced: 'P3-7' (total: 8)
+Consumer 2 consumed: 'P3-5' (total: 10)
+Consumer 1 consumed: 'P2-6' (total: 10)
+Producer 2 produced: 'P2-8' (total: 9)
+Producer 1 produced: 'P1-9' (total: 10)
+Producer 1 finished. Total items produced: 10
+Consumer 2 consumed: 'P1-7' (total: 11)
+Consumer 1 consumed: 'P3-6' (total: 11)
+Producer 2 produced: 'P2-9' (total: 10)
+Producer 2 finished. Total items produced: 10
+Producer 3 produced: 'P3-8' (total: 9)
+Consumer 2 consumed: 'P1-8' (total: 12)
+Producer 3 produced: 'P3-9' (total: 10)
+Producer 3 finished. Total items produced: 10
+Consumer 1 consumed: 'P2-7' (total: 12)
+All producers finished
+Consumer 2 consumed: 'P3-7' (total: 13)
+Consumer 1 consumed: 'P2-8' (total: 13)
+Consumer 2 consumed: 'P1-9' (total: 14)
+Consumer 1 consumed: 'P2-9' (total: 14)
+Consumer 1 consumed: 'P3-9' (total: 15)
+Consumer 2 consumed: 'P3-8' (total: 15)
+Consumer 1 received poison pill
+Consumer 1 finished. Total items consumed: 15
+Consumer 2 received poison pill
+Consumer 2 finished. Total items consumed: 15
+System shutdown complete
+Total items consumed: 30
+Stats: {'num_producers': 3, 'num_consumers': 2, 'total_produced': 30, 'total_consumed': 30, 'buffer_size': 0, 'items_in_transit': 0}
+
+```
+
+### Running  Unit Tests
 
 ```bash
 # Run the REQUIRED unit tests for SharedBuffer (per assignment prompt)
@@ -55,7 +162,7 @@ python -m unittest tests.integration_producer_consumer -v
 
 ```
 
-### Sample Unit Test Output (abbreviated)
+### Sample Unit Test Output
 
 ```text
 
@@ -97,51 +204,6 @@ Errors:          0
 
 ```
 
-## Usage
-
-### Basic (1:1)
-
-```python
-from src import ProducerConsumerSystem
-
-source = [f"Item-{i}" for i in range(20)]
-destination = []
-
-system = ProducerConsumerSystem(buffer_size=5)
-system.add_producer(producer_id=1, source=source)
-system.add_consumer(consumer_id=1, destination=destination)
-
-system.start()
-system.shutdown_gracefully()
-
-print(f"Transferred: {len(destination)} items")
-```
-
-### Advanced (N:M)
-
-```python
-from src import ProducerConsumerSystem
-
-sources = [
-    [f"P1-{i}" for i in range(15)],
-    [f"P2-{i}" for i in range(15)],
-    [f"P3-{i}" for i in range(15)],
-]
-destination = []
-
-system = ProducerConsumerSystem(buffer_size=10)
-for i, src in enumerate(sources, 1):
-    system.add_producer(producer_id=i, source=src)
-
-for cid in range(1, 3):
-    system.add_consumer(consumer_id=cid, destination=destination)
-
-system.start()
-system.shutdown_gracefully()
-
-print(f"Transferred: {len(destination)} items")
-print(f"Statistics: {system.get_statistics()}")
-```
 
 ## Architecture Overview
 
