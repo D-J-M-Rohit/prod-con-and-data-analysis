@@ -52,15 +52,17 @@ class SharedBuffer(Generic[T]):
     # Internal helpers
     # ----------------------------
 
-    def _wait_until(self, predicate, timeout: Optional[float]) -> bool:
+    def _wait_until(self, predicate, timeout: Optional[float], cond=None) -> bool:
         """
         Wait (under self._lock) until predicate() becomes True or timeout elapses.
         Returns True if predicate became True; False on timeout.
         """
+        if cond is None:
+            cond = self._not_empty
+
         if timeout is None:
             while not predicate():
-                
-                self._not_empty.wait()
+                cond.wait()
             return True
 
         deadline = monotonic() + timeout
@@ -68,7 +70,7 @@ class SharedBuffer(Generic[T]):
         while not predicate():
             if remaining <= 0:
                 return False
-            self._not_empty.wait(timeout=remaining)
+            cond.wait(timeout=remaining)
             remaining = deadline - monotonic()
         return True
 
@@ -88,7 +90,7 @@ class SharedBuffer(Generic[T]):
                 return (not self._closed) and (len(self._q) < self._max)
 
             if not can_put():
-                if not self._wait_until(can_put, timeout):
+                if not self._wait_until(can_put, timeout, self._not_full):
                     return False
                 if self._closed:
                     raise QueueClosed("Buffer is closed")
@@ -112,7 +114,7 @@ class SharedBuffer(Generic[T]):
                 return bool(self._q)
 
             if not can_get():
-                if not self._wait_until(can_get, timeout):
+                if not self._wait_until(can_get, timeout, self._not_empty):
                     return None
 
             if self._closed and not self._q:
