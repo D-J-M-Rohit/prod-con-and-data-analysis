@@ -4,7 +4,9 @@ import argparse
 from pathlib import Path
 from typing import List
 
-from src.analysis import (
+from src import (
+    Transaction,
+    load_transactions,
     avg_order_value,
     cancellation_rate,
     monthly_revenue,
@@ -17,8 +19,7 @@ from src.analysis import (
     sales_by_weekday,
     cancellation_summary,
 )
-from src.io_utils import load_transactions
-from src.models import Transaction
+
 
 TOP_N = 10  # fixed top size
 

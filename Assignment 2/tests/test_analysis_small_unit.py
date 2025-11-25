@@ -2,8 +2,8 @@
 import unittest
 from datetime import datetime
 
-from src.models import Transaction
-from src.analysis import (
+from src import (
+    Transaction,
     avg_order_value,
     cancellation_rate,
     cancellation_summary,
