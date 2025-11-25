@@ -12,7 +12,6 @@ A thread-safe implementation of the classic Producer–Consumer pattern in Pytho
 * Modular architecture with clear separation of concerns
 * Unit tests for the bounded buffer (as requested in the assignment)
 * Optional integration tests that exercise full system behavior, including a high-contention stress scenario
-* Extensive docstrings and runnable examples
 
 ## Project Structure
 
